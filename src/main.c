@@ -1,71 +1,62 @@
+#include <stdio.h>
 #include "pico/stdlib.h"
+#include "hardware/adc.h"
+#include "hardware/gpio.h"
+#include "tusb.h"
 
-#include "packet.c"
+// Pin Defs
+#define STEERING_ADC	26
+#define THROTTLE_ADC	27
+#define BRAKE_ADC   	28
+#define BUTTON_ADC  	29
+#define PEDAL_LEFT  	0
+#define PEDAL_RIGHT 	1
 
-#define MICRO_SHIFTER_LEFT  1
-#define MICRO_SHIFTER_RIGHT 2
-#define MOTOR_STEERING      3
-#define BUTTON_ADC          4
-#define LOAD_THROTTLE       5 
-#define LOAD_BREAK          6
+// HID Report 
+typedef struct {
+	uint8_t  report_id;
+	uint16_t steering;
+	uint16_t throttle;
+	uint16_t brake;
+	uint16_t buttons; // bit field for 10 buttons
+} __attribute__((packed)) wheel_report;
 
-void initMicrocontroller();
-void initPeripherals();
-
-int main(void) {
-	// Initialize the LED pin
-	initMicrocontroller();
-
-	uint8_t led = 0;
-    bool last_state = 1; // button released (with pull-up, 1 = released)
-
-    while (true) {
-        bool current_state = gpio_get(13);
-
-        // Detect transition from released (1) → pressed (0)
-        if (last_state == 1 && current_state == 0) {
-            led ^= 1;
-            gpio_put(25, led);
-        }
-
-        last_state = current_state;
-        sleep_ms(20); // debounce delay
-    }
-
-	return 0;
-}
-
-void initMicrocontroller() {
+// Init Hardware
+void setupHardware(void) {
 	stdio_init_all();
-	//tusb_init();
-	//adc_init();
-	
-	// test
-	gpio_init(25);
-	gpio_set_dir(25, GPIO_OUT);
-	gpio_init(13);
-	gpio_set_dir(13, GPIO_IN);
-	gpio_pull_up(13);
+
+	// Initialize ADC
+	adc_init();
+	adc_gpio_init(STEERING_ADC);
+	adc_gpio_init(THROTTLE_ADC);
+	adc_gpio_init(BRAKE_ADC);
+	adc_gpio_init(BUTTON_ADC);
+
+	// Initialize GPIO
+	gpio_init(PEDAL_LEFT);
+	gpio_set_dir(PEDAL_LEFT, GPIO_IN);
+	gpio_pull_up(PEDAL_LEFT);
+
+	gpio_init(PEDAL_RIGHT);
+	gpio_set_dir(PEDAL_RIGHT, GPIO_IN);
+	gpio_pull_up(PEDAL_RIGHT);
 }
 
-void initPeripherals() {
-	// micro shifters
-	gpio_init(MICRO_SHIFTER_LEFT);
-	gpio_set_dir(MICRO_SHIFTER_LEFT, GPIO_IN);
-	gpio_init(MICRO_SHIFTER_RIGHT);
-	gpio_set_dir(MICRO_SHIFTER_RIGHT, GPIO_IN);
+uint16_t readSteering(void) {}
+uint16_t readThrottle(void) {}
+uint16_t readBrake(void) {}
+uint16_t readButtons(void) {}
 
-	// motor controller
-	gpio_init(MOTOR_STEERING);
-	gpio_set_dir(MOTOR_STEERING, GPIO_IN);
+void shipWheelReport(void){}
 
-	// button controls
-	gpio_init(BUTTON_ADC);
-	gpio_set_dir(BUTTON_ADC, GPIO_IN);
+void main(void) {
+	// init hardware
+	setupHardware();
+	tusb_init();
 
-	// load cell movement
-	gpio_init(LOAD_THROTTLE);
-	gpio_set_dir(LOAD_THROTTLE, GPIO_IN);
-	gpio_init(LOAD_BREAK);
-	gpio_set_dir(LOAD_BREAK, GPIO_IN);
+	while (1) {
+		tud_task(); // process usb tasks
+		shipWheelReport();
+		sleep_ms(1); // 1000 data requests a second
+	}
 }

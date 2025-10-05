@@ -16,12 +16,25 @@ pico_sdk_init()
 
 add_executable(steering_wheel 
 	src/main.c
+	src/usb_descriptors.c
 )
 
-pico_enable_stdio_usb(steering_wheel 1)
-pico_enable_stdio_uart(steering_wheel 0)
+# includes tusb_config.h dir
+target_include_directories(steering_wheel
+	PRIVATE
+	src
+)
 
-target_link_libraries(steering_wheel pico_stdlib hardware_gpio)
+pico_enable_stdio_usb(steering_wheel 0)
+pico_enable_stdio_uart(steering_wheel 1)
+
+target_link_libraries(steering_wheel 
+	pico_stdlib 
+	hardware_adc
+	hardware_gpio
+	tinyusb_device
+	tinyusb_board
+)
 
 pico_add_extra_outputs(steering_wheel)
 
