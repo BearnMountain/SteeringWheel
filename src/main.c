@@ -42,21 +42,51 @@ void setupHardware(void) {
 	gpio_pull_up(PEDAL_RIGHT);
 }
 
-uint16_t readSteering(void) {}
-uint16_t readThrottle(void) {}
-uint16_t readBrake(void) {}
-uint16_t readButtons(void) {}
+uint16_t readSteering(void) {
+	adc_select_input(STEERING_ADC - 26);
+	uint16_t raw_data  = adc_read();
 
-void shipWheelReport(void){}
+	return (raw_data << 4) | (raw_data >> 8); 
+}
 
-void main(void) {
+uint16_t readThrottle(void) {
+	return 0;
+}
+
+uint16_t readBrake(void) {
+	return 0;
+}
+
+// must read buttons 0-7 + 2 pedal buttons
+uint16_t readButtons(void) {
+	return 0;
+}
+
+void sendWheelReport(void) {
+	// send when USB is ready
+	if (!tud_hid_ready()) return;
+
+	wheel_report report = {
+		.report_id = 1,
+		.steering = readSteering(),
+		.throttle = readThrottle(),
+		.brake = readBrake(),
+		.buttons = readButtons()
+	};
+
+	tud_hid_report(0x01, &report, sizeof(report));
+}
+
+int main(void) {
 	// init hardware
 	setupHardware();
 	tusb_init();
 
 	while (1) {
 		tud_task(); // process usb tasks
-		shipWheelReport();
+		sendWheelReport();
 		sleep_ms(1); // 1000 data requests a second
 	}
+
+	return 0;
 }

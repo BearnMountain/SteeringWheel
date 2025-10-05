@@ -25,6 +25,7 @@ uint8_t const * tud_descriptor_device_cb(void) {
 
 // HID Report Descriptor - Racing Wheel
 uint8_t const desc_hid_report[] = {
+	// Report ID
     0x05, 0x01,        // Usage Page (Generic Desktop)
     0x09, 0x04,        // Usage (Joystick)
     0xA1, 0x01,        // Collection (Application)
