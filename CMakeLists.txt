@@ -1,40 +1,14 @@
 cmake_minimum_required(VERSION 3.13)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# Delegates to subdirectories for  building
+project(embedded_system)
 
-# Pull in Pico SDK
-include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
+# Build steering wheel (Pico)
+if(BUILD_STEERING)
+    add_subdirectory(steering_src)
+endif()
 
-# IMPORTANT: add ASM here
-project(steering_wheel C CXX ASM)
-
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
-
-# Initialize the Pico SDK
-pico_sdk_init()
-
-add_executable(steering_wheel 
-	src/main.c
-	src/usb_descriptors.c
-)
-
-# includes tusb_config.h dir
-target_include_directories(steering_wheel
-	PRIVATE
-	src
-)
-
-pico_enable_stdio_usb(steering_wheel 0)
-pico_enable_stdio_uart(steering_wheel 1)
-
-target_link_libraries(steering_wheel 
-	pico_stdlib 
-	hardware_adc
-	hardware_gpio
-	tinyusb_device
-	tinyusb_board
-)
-
-pico_add_extra_outputs(steering_wheel)
-
+# Build motor MCU (STM32)
+if(BUILD_MOTOR)
+    add_subdirectory(motor_src)
+endif()
