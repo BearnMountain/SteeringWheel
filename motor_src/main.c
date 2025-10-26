@@ -3,16 +3,15 @@
 
 
 int main(void) {
-	// Hardware Init
-	HAL_Init();
-	SystemClock_Config(); // 170MHz for STM32G4
-	
-	// Peripherals
-	GPIO_Init();
-	SPI_Init(); // encoder out
-	ADC_Init(); // current sensing
-	TIM_PWM_Init(); // 6-channel pwm 
-	TIM_ADC_Trigger_Init(); // sync adc with pwm
+	// HAL_Init();
+	// SystemClock_Config(); // 170MHz for STM32G4
+
+	// // Peripherals
+	// GPIO_Init();
+	// SPI_Init(); // encoder out
+	// ADC_Init(); // current sensing
+	// TIM_PWM_Init(); // 6-channel pwm 
+	// TIM_ADC_Trigger_Init(); // sync adc with pwm
 	
 	// Encoder Setup
 	// AS5147_Init();
